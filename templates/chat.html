@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediAssistant AI</title>
+<link rel="stylesheet" href="../static/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+<body>
+
+<main class="chat-container">
+  <div class="chat-card">
+    <header class="chat-header">
+      <div class="bot-avatar">🤖</div>
+      <h1>MediAssistant AI</h1>
+    </header>
+
+    <div class="chat-messages" id="messages">
+      <div class="welcome-msg">Welcome to MediAssistant AI. How can I help you today?</div>
+    </div>
+
+    <footer class="chat-footer">
+      <form id="chatForm">
+        <input type="text" id="chatInput" placeholder="Type your medical concerns here..." autocomplete="off" required />
+        <button type="submit">Send</button>
+      </form>
+      <p class="disclaimer">
+        MediAssistant AI is for informational purposes and is not a substitute for professional medical advice.
+      </p>
+    </footer>
+  </div>
+</main>
+
+<script>
+$(document).ready(function() {
+  const messagesEl = $("#messages");
+  $("#chatForm").on("submit", function(e) {
+    e.preventDefault();
+    const text = $("#chatInput").val().trim();
+    if (!text) return;
+
+    const timestamp = new Date();
+    const timeStr = timestamp.getHours() + ":" + (timestamp.getMinutes()<10?"0":"") + timestamp.getMinutes();
+
+    // User message
+    messagesEl.append(`
+      <div class="message user">
+        <div class="avatar user-avatar">U</div>
+        <div class="message-text">${text}<span class="msg-time">${timeStr}</span></div>
+      </div>
+    `);
+    $("#chatInput").val('');
+    messagesEl.scrollTop(messagesEl[0].scrollHeight);
+
+    // Call backend
+    $.ajax({
+      url: "/get",
+      method: "POST",
+      data: { msg: text },
+      success: function(data) {
+        messagesEl.append(`
+          <div class="message assistant">
+            <div class="avatar bot-avatar">🤖</div>
+            <div class="message-text">${data}<span class="msg-time">${timeStr}</span></div>
+          </div>
+        `);
+        messagesEl.scrollTop(messagesEl[0].scrollHeight);
+      },
+      error: function() {
+        messagesEl.append(`
+          <div class="message assistant">
+            <div class="avatar bot-avatar">🤖</div>
+            <div class="message-text">Sorry, something went wrong.<span class="msg-time">${timeStr}</span></div>
+          </div>
+        `);
+        messagesEl.scrollTop(messagesEl[0].scrollHeight);
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
